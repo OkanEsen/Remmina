@@ -71,7 +71,7 @@ RemminaMessagePanel *remmina_message_panel_new(void);
 void remmina_message_panel_setup_progress(RemminaMessagePanel *mp, const gchar *message, RemminaMessagePanelCallback response_callback, gpointer response_callback_data);
 void remmina_message_panel_setup_message(RemminaMessagePanel *mp, const gchar *message, RemminaMessagePanelCallback response_callback, gpointer response_callback_data);
 void remmina_message_panel_setup_question(RemminaMessagePanel *mp, const gchar *message, RemminaMessagePanelCallback response_callback, gpointer response_callback_data);
-void remmina_message_panel_setup_auth(RemminaMessagePanel *mp, RemminaMessagePanelCallback response_callback, gpointer response_callback_data, const gchar *title, const gchar *password_prompt, unsigned flags);
+void remmina_message_panel_setup_auth(RemminaMessagePanel *mp, RemminaMessagePanelCallback response_callback, gpointer response_callback_data, const gchar *title, const gchar *password_prompt, const gchar *description, unsigned flags);
 void remmina_message_panel_setup_auth_x509(RemminaMessagePanel *mp, RemminaMessagePanelCallback response_callback, gpointer response_callback_data);
 void remmina_message_panel_focus_auth_entry(RemminaMessagePanel *mp);
 void remmina_message_panel_field_set_string(RemminaMessagePanel *mp, int entryid, const gchar *text);

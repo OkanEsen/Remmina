@@ -260,7 +260,9 @@ void remmina_message_panel_setup_question(RemminaMessagePanel *mp, const gchar *
 
 }
 
-void remmina_message_panel_setup_auth(RemminaMessagePanel *mp, RemminaMessagePanelCallback response_callback, gpointer response_callback_data, const gchar *title, const gchar *password_prompt, unsigned flags)
+void remmina_message_panel_setup_auth(RemminaMessagePanel *mp, RemminaMessagePanelCallback response_callback,
+	gpointer response_callback_data, const gchar *title, const gchar *password_prompt, const gchar *description,
+	unsigned flags)
 {
 	TRACE_CALL(__func__);
 	GtkWidget *grid;
@@ -305,6 +307,17 @@ void remmina_message_panel_setup_auth(RemminaMessagePanel *mp, RemminaMessagePan
 	gtk_grid_attach(GTK_GRID(grid), widget, 0, grid_row, 3, 1);
 	grid_row++;
 
+	widget = gtk_label_new(description);
+	gtk_style_context_add_class(gtk_widget_get_style_context(widget), "title_label");
+	gtk_widget_set_halign(GTK_WIDGET(widget), GTK_ALIGN_START);
+	gtk_widget_set_valign(GTK_WIDGET(widget), GTK_ALIGN_FILL);
+	gtk_widget_set_margin_top (GTK_WIDGET(widget), 18);
+	gtk_widget_set_margin_bottom (GTK_WIDGET(widget), 9);
+	gtk_widget_set_margin_start (GTK_WIDGET(widget), 18);
+	gtk_widget_set_margin_end (GTK_WIDGET(widget), 18);
+	gtk_widget_show(widget);
+	gtk_grid_attach(GTK_GRID(grid), widget, 0, grid_row, 3, 1);
+	grid_row++;
 
 	if (flags & REMMINA_MESSAGE_PANEL_FLAG_USERNAME) {
 		widget = gtk_label_new(_("User name"));

@@ -236,7 +236,7 @@ static gboolean remmina_plugin_spice_ask_auth(RemminaProtocolWidget *gp)
 
 	ret = remmina_plugin_service->protocol_plugin_init_auth(gp,
 		(disablepasswordstoring ? 0 : REMMINA_MESSAGE_PANEL_FLAG_SAVEPASSWORD),
-		_("Enter SPICE password"),
+		_("Type in SPICE password"),
 		NULL,
 		remmina_plugin_service->file_get_string(remminafile, "password"),
 		NULL,

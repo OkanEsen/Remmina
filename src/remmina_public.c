@@ -636,7 +636,7 @@ gboolean remmina_public_resolution_validation_func(const gchar *new_str, gchar *
 		result = FALSE;
 
 	if (!result)
-		*error = g_strdup(_("Please enter format 'widthxheight'."));
+		*error = g_strdup(_("Please enter format 'widthxheight':"));
 	return result;
 }
 

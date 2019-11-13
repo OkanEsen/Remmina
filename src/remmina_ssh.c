@@ -1113,7 +1113,7 @@ remmina_ssh_tunnel_main_thread_proc(gpointer data)
 		}
 		g_free(ptr);
 		if (ssh_channel_request_exec(tunnel->x11_channel, tunnel->dest)) {
-			ptr = g_strdup_printf(_("Failed to execute %s on SSH server, %%s"), tunnel->dest);
+			ptr = g_strdup_printf(_("Could not execute %s on SSH server, %%s"), tunnel->dest);
 			remmina_ssh_set_error(REMMINA_SSH(tunnel), ptr);
 			g_free(ptr);
 			tunnel->thread = 0;
@@ -1504,7 +1504,7 @@ remmina_ssh_tunnel_xport(RemminaSSHTunnel *tunnel, gboolean bindlocalhost)
 
 	if (pthread_create(&tunnel->thread, NULL, remmina_ssh_tunnel_main_thread, tunnel)) {
 		// TRANSLATORS: Do not translate pthread
-		remmina_ssh_set_application_error(REMMINA_SSH(tunnel), _("Failed to initialize pthread."));
+		remmina_ssh_set_application_error(REMMINA_SSH(tunnel), _("Could not initialize pthread."));
 		tunnel->thread = 0;
 		return FALSE;
 	}

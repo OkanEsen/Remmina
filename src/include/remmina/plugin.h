@@ -228,6 +228,9 @@ typedef struct _RemminaPluginService {
 
 	void (* protocol_plugin_emit_signal_with_int_param)(RemminaProtocolWidget *gp, const gchar *signal_name, int param);
 
+	void (* filetransfer_init)(RemminaProtocolWidget *gp);
+	void (* filetransfer_plugin_has_files)(RemminaProtocolWidget *gp, int nfiles);
+
 } RemminaPluginService;
 
 /* "Prototype" of the plugin entry function */

@@ -529,9 +529,9 @@ static UINT remmina_rdp_cliprdr_server_format_data_response(CliprdrClientContext
 	RemminaPluginRdpUiObject *ui;
 
 	clipboard = (rfClipboard*)context->custom;
-	if (clipboard->srv_clip_data_wait == SCDW_DOWNLOADTHREAD) {
-		/* When the clipboard is controlled by DOWNLOADTHREAD, all this
-		 * callbacks are routed to the apposite callback function */
+	if (clipboard->srv_clip_data_wait == SCDW_FILEDOWNLOAD) {
+		/* When the clipboard is downloading files, route this call to
+		 * the appropriate function */
 		return rdp_cliprdr_download_server_format_data_response(context, formatDataResponse);
 	}
 

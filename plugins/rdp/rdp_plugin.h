@@ -115,7 +115,7 @@ struct rf_clipboard {
 
 	pthread_mutex_t		transfer_clip_mutex;
 	pthread_cond_t		transfer_clip_cond;
-	enum  { SCDW_NONE, SCDW_BUSY_WAIT, SCDW_ASYNCWAIT, SCDW_DOWNLOADTHREAD } srv_clip_data_wait;
+	enum  { SCDW_NONE, SCDW_BUSY_WAIT, SCDW_ASYNCWAIT, SCDW_FILEDOWNLOAD } srv_clip_data_wait;
 	gpointer		srv_data;
 	gboolean		streams_supported;
 

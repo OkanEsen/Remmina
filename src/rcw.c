@@ -2050,34 +2050,45 @@ static void rcw_toolbar_grab(GtkWidget *widget, RemminaConnectionWindow *cnnwin)
 		rcw_keyboard_ungrab(cnnobj->cnnwin);
 	}
 }
-static void
-toggle_changed_cb (GtkWidget *toolitem,
-                   GtkWidget       *popover)
+
+static void toggle_changed_cb (GtkWidget *toolitem, GtkWidget *popover)
 {
   gtk_widget_set_visible (popover,
                           gtk_toggle_tool_button_get_active (GTK_TOGGLE_TOOL_BUTTON(toolitem)));
 }
 
-static GtkWidget * create_popover (GtkWidget *parent, gint n_monitors, GtkPositionType  pos)
+static GtkWidget * rcw_multidisp_popover (GtkWidget *parent, gint n_monitors, GtkPositionType  pos)
 {
-	GtkWidget *popover, *box;
+	GtkWidget *popover, *vbox, *hbox;
 	gint i;
 	gchar iconname[40];
 	GtkToolItem *toolitem;
 
 	popover = gtk_popover_new (parent);
 	gtk_popover_set_position (GTK_POPOVER (popover), pos);
-	box = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 24);
-	gtk_container_add (GTK_CONTAINER (popover), box);
+	vbox = gtk_box_new(GTK_ORIENTATION_VERTICAL, 24);
+	gtk_widget_set_halign (vbox, GTK_ALIGN_CENTER);
+	gtk_container_add (GTK_CONTAINER (popover), vbox);
+	hbox = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 24);
+	gtk_widget_set_halign (hbox, GTK_ALIGN_CENTER);
+	gtk_container_add (GTK_CONTAINER (vbox), hbox);
 	for (i = 1; i <= n_monitors; ++i) {
 		toolitem = gtk_toggle_tool_button_new();
 		g_debug ("Adding screen icon n° %d/%d", i, n_monitors);
 		g_sprintf(iconname,  "remmina-set-mon-%d-symbolic", i);
 		gtk_tool_button_set_icon_name(GTK_TOOL_BUTTON(toolitem), iconname);
-		gtk_container_add (GTK_CONTAINER (box), GTK_WIDGET(toolitem));
+		rcw_set_tooltip( GTK_WIDGET(toolitem),
+				g_strdup_printf(_("Use screen %d during fullscreen"), i),
+				0, 0);
+		gtk_container_add (GTK_CONTAINER (hbox), GTK_WIDGET(toolitem));
 	}
-	gtk_widget_show_all(box);
-	gtk_container_add (GTK_CONTAINER (parent), box);
+	GtkToolItem *all = gtk_toggle_tool_button_new();
+	gtk_tool_button_set_icon_name(GTK_TOOL_BUTTON(all), "remmina-set-mon-all-symbolic");
+	rcw_set_tooltip(GTK_WIDGET(all), ("Use all vailable displays in fullscreen"), 0, 0);
+	gtk_widget_set_halign (GTK_WIDGET(all), GTK_ALIGN_CENTER);
+	gtk_container_add (GTK_CONTAINER (vbox), GTK_WIDGET(all));
+	gtk_widget_show_all(vbox);
+	gtk_container_add (GTK_CONTAINER (parent), vbox);
 	gtk_container_set_border_width (GTK_CONTAINER (popover), 6);
 
 	return popover;
@@ -2089,7 +2100,6 @@ static void rcw_toolbar_multidisp_icons (RemminaConnectionWindow *cnnwin, GtkWid
 #if GTK_CHECK_VERSION(3, 22, 0)
 	gint n_monitors;
 	gint n_enabled;
-	gint i;
 	gchar iconname[40];
 	GdkMonitor *monitor;
 	GdkDisplay *display;
@@ -2111,10 +2121,10 @@ static void rcw_toolbar_multidisp_icons (RemminaConnectionWindow *cnnwin, GtkWid
 		g_sprintf(iconname,  "remmina-set-mon-%d-symbolic", n_enabled);
 		gtk_tool_button_set_icon_name(GTK_TOOL_BUTTON(toolitem), iconname);
 		rcw_set_tooltip( GTK_WIDGET(toolitem),
-				_("Select active screens"),
+				_("Select fullscreen active displays"),
 				0, 0);
 		gtk_toolbar_insert(GTK_TOOLBAR(toolbar), toolitem, -1);
-		popover = create_popover (GTK_WIDGET(toolitem),
+		popover = rcw_multidisp_popover (GTK_WIDGET(toolitem),
 				n_monitors,
 				GTK_POS_TOP);
 		gtk_popover_set_modal (GTK_POPOVER (popover), FALSE);

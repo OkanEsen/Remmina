@@ -41,6 +41,7 @@
 #include <gdk/gdk.h>
 #include <gdk/gdkkeysyms.h>
 #include <glib/gi18n.h>
+#include <glib/gprintf.h>
 #include <gtk/gtk.h>
 #include <stdlib.h>
 
@@ -2098,6 +2099,38 @@ static void rcw_toolbar_grab(GtkWidget *widget, RemminaConnectionWindow *cnnwin)
 	}
 }
 
+static void rcw_toolbar_multidisp_icons (RemminaConnectionWindow *cnnwin, GtkWidget *toolbar)
+{
+	TRACE_CALL(__func__);
+#if GTK_CHECK_VERSION(3, 22, 0)
+	gint n_monitors;
+	gint i;
+	gchar iconname[40];
+	GdkMonitor *monitor;
+	GdkDisplay *display;
+	GdkWindow *window;
+	GtkToolItem *toolitem;
+
+	window = gtk_widget_get_window(GTK_WIDGET(cnnwin));
+	display = gdk_window_get_display(window);
+	monitor = gdk_display_get_monitor_at_window(display, window);
+	n_monitors = gdk_display_get_n_monitors(display);
+	// n_monitors = 3;
+	if (n_monitors > 1) {
+		for (i = 1; i <= n_monitors; ++i) {
+			//if (gdk_display_get_monitor(display, i) == monitor) {
+				toolitem = gtk_toggle_tool_button_new();
+				g_sprintf(iconname,  "remmina-set-mon-%d-symbolic", i);
+				gtk_tool_button_set_icon_name(GTK_TOOL_BUTTON(toolitem), iconname);
+				gtk_toolbar_insert(GTK_TOOLBAR(toolbar), toolitem, -1);
+				gtk_widget_show(GTK_WIDGET(toolitem));
+				//break;
+			//}
+		}
+	}
+#endif
+}
+
 static GtkWidget *
 rcw_create_toolbar(RemminaConnectionWindow *cnnwin, gint mode)
 {
@@ -2144,6 +2177,9 @@ rcw_create_toolbar(RemminaConnectionWindow *cnnwin, gint mode)
 		gtk_toggle_tool_button_set_active(GTK_TOGGLE_TOOL_BUTTON(toolitem), mode != SCROLLED_WINDOW_MODE);
 		g_signal_connect(G_OBJECT(toolitem), "clicked", G_CALLBACK(rcw_toolbar_fullscreen), cnnwin);
 	}
+
+	/* Fullscreen multi-monitor */
+	rcw_toolbar_multidisp_icons (cnnwin, toolbar);
 
 	/* Fullscreen drop-down options */
 	toolitem = gtk_tool_item_new();

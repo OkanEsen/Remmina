@@ -2050,35 +2050,78 @@ static void rcw_toolbar_grab(GtkWidget *widget, RemminaConnectionWindow *cnnwin)
 		rcw_keyboard_ungrab(cnnobj->cnnwin);
 	}
 }
+static void
+toggle_changed_cb (GtkWidget *toolitem,
+                   GtkWidget       *popover)
+{
+  gtk_widget_set_visible (popover,
+                          gtk_toggle_tool_button_get_active (GTK_TOGGLE_TOOL_BUTTON(toolitem)));
+}
+
+static GtkWidget * create_popover (GtkWidget *parent, gint n_monitors, GtkPositionType  pos)
+{
+	GtkWidget *popover, *box;
+	gint i;
+	gchar iconname[40];
+	GtkToolItem *toolitem;
+
+	popover = gtk_popover_new (parent);
+	gtk_popover_set_position (GTK_POPOVER (popover), pos);
+	box = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 24);
+	gtk_container_add (GTK_CONTAINER (popover), box);
+	for (i = 1; i <= n_monitors; ++i) {
+		toolitem = gtk_toggle_tool_button_new();
+		g_debug ("Adding screen icon n° %d/%d", i, n_monitors);
+		g_sprintf(iconname,  "remmina-set-mon-%d-symbolic", i);
+		gtk_tool_button_set_icon_name(GTK_TOOL_BUTTON(toolitem), iconname);
+		gtk_container_add (GTK_CONTAINER (box), GTK_WIDGET(toolitem));
+	}
+	gtk_widget_show_all(box);
+	gtk_container_add (GTK_CONTAINER (parent), box);
+	gtk_container_set_border_width (GTK_CONTAINER (popover), 6);
+
+	return popover;
+}
 
 static void rcw_toolbar_multidisp_icons (RemminaConnectionWindow *cnnwin, GtkWidget *toolbar)
 {
 	TRACE_CALL(__func__);
 #if GTK_CHECK_VERSION(3, 22, 0)
 	gint n_monitors;
+	gint n_enabled;
 	gint i;
 	gchar iconname[40];
 	GdkMonitor *monitor;
 	GdkDisplay *display;
 	GdkWindow *window;
 	GtkToolItem *toolitem;
+	GtkWidget *popover;
 
 	window = gtk_widget_get_window(GTK_WIDGET(cnnwin));
 	display = gdk_window_get_display(window);
 	monitor = gdk_display_get_monitor_at_window(display, window);
 	n_monitors = gdk_display_get_n_monitors(display);
-	// n_monitors = 3;
+	/* Number of activated/enabled monitors
+	 * here we should see in the profile if the user disabled a specific
+	 * monitor
+	 */
+	n_enabled = n_monitors;
 	if (n_monitors > 1) {
-		for (i = 1; i <= n_monitors; ++i) {
-			//if (gdk_display_get_monitor(display, i) == monitor) {
-				toolitem = gtk_toggle_tool_button_new();
-				g_sprintf(iconname,  "remmina-set-mon-%d-symbolic", i);
-				gtk_tool_button_set_icon_name(GTK_TOOL_BUTTON(toolitem), iconname);
-				gtk_toolbar_insert(GTK_TOOLBAR(toolbar), toolitem, -1);
-				gtk_widget_show(GTK_WIDGET(toolitem));
-				//break;
-			//}
-		}
+		toolitem = gtk_toggle_tool_button_new();
+		g_sprintf(iconname,  "remmina-set-mon-%d-symbolic", n_enabled);
+		gtk_tool_button_set_icon_name(GTK_TOOL_BUTTON(toolitem), iconname);
+		rcw_set_tooltip( GTK_WIDGET(toolitem),
+				_("Select active screens"),
+				0, 0);
+		gtk_toolbar_insert(GTK_TOOLBAR(toolbar), toolitem, -1);
+		popover = create_popover (GTK_WIDGET(toolitem),
+				n_monitors,
+				GTK_POS_TOP);
+		gtk_popover_set_modal (GTK_POPOVER (popover), FALSE);
+		g_signal_connect (G_OBJECT(toolitem), "toggled",
+				G_CALLBACK (toggle_changed_cb), popover);
+		gtk_widget_show(GTK_WIDGET(toolitem));
+		// n_monitors = 3;
 	}
 #endif
 }

@@ -58,6 +58,7 @@ set(APPICONSCALE_ACTIONS_DATA
     scalable/actions/remmina-set-mon-2-symbolic.svg
     scalable/actions/remmina-set-mon-3-symbolic.svg
     scalable/actions/remmina-set-mon-4-symbolic.svg
+    scalable/actions/remmina-set-mon-all-symbolic.svg
     scalable/actions/remmina-system-run-symbolic.svg
     scalable/actions/view-list.svg
     )

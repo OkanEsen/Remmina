@@ -2051,50 +2051,50 @@ static void rcw_toolbar_grab(GtkWidget *widget, RemminaConnectionWindow *cnnwin)
 	}
 }
 
-static void toggle_changed_cb (GtkWidget *toolitem, GtkWidget *popover)
+static void toggle_changed_cb(GtkWidget *toolitem, GtkWidget *popover)
 {
-  gtk_widget_set_visible (popover,
-                          gtk_toggle_tool_button_get_active (GTK_TOGGLE_TOOL_BUTTON(toolitem)));
+	gtk_widget_set_visible(popover,
+			       gtk_toggle_tool_button_get_active(GTK_TOGGLE_TOOL_BUTTON(toolitem)));
 }
 
-static GtkWidget * rcw_multidisp_popover (GtkWidget *parent, gint n_monitors, GtkPositionType  pos)
+static GtkWidget *rcw_multidisp_popover(GtkWidget *parent, gint n_monitors, GtkPositionType pos)
 {
 	GtkWidget *popover, *vbox, *hbox;
 	gint i;
 	gchar iconname[40];
 	GtkToolItem *toolitem;
 
-	popover = gtk_popover_new (parent);
-	gtk_popover_set_position (GTK_POPOVER (popover), pos);
+	popover = gtk_popover_new(parent);
+	gtk_popover_set_position(GTK_POPOVER(popover), pos);
 	vbox = gtk_box_new(GTK_ORIENTATION_VERTICAL, 24);
-	gtk_widget_set_halign (vbox, GTK_ALIGN_CENTER);
-	gtk_container_add (GTK_CONTAINER (popover), vbox);
+	gtk_widget_set_halign(vbox, GTK_ALIGN_CENTER);
+	gtk_container_add(GTK_CONTAINER(popover), vbox);
 	hbox = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 24);
-	gtk_widget_set_halign (hbox, GTK_ALIGN_CENTER);
-	gtk_container_add (GTK_CONTAINER (vbox), hbox);
+	gtk_widget_set_halign(hbox, GTK_ALIGN_CENTER);
+	gtk_container_add(GTK_CONTAINER(vbox), hbox);
 	for (i = 1; i <= n_monitors; ++i) {
 		toolitem = gtk_toggle_tool_button_new();
-		g_debug ("Adding screen icon n° %d/%d", i, n_monitors);
-		g_sprintf(iconname,  "remmina-set-mon-%d-symbolic", i);
+		g_debug("Adding monitor icon n° %d/%d", i, n_monitors);
+		g_sprintf(iconname, "remmina-set-mon-%d-symbolic", i);
 		gtk_tool_button_set_icon_name(GTK_TOOL_BUTTON(toolitem), iconname);
-		rcw_set_tooltip( GTK_WIDGET(toolitem),
-				g_strdup_printf(_("Use screen %d during fullscreen"), i),
-				0, 0);
-		gtk_container_add (GTK_CONTAINER (hbox), GTK_WIDGET(toolitem));
+		gtk_tool_item_set_tooltip_text(toolitem,
+					       g_strdup_printf(_("Use screen %d during fullscreen"), i));
+		gtk_container_add(GTK_CONTAINER(hbox), GTK_WIDGET(toolitem));
 	}
 	GtkToolItem *all = gtk_toggle_tool_button_new();
 	gtk_tool_button_set_icon_name(GTK_TOOL_BUTTON(all), "remmina-set-mon-all-symbolic");
-	rcw_set_tooltip(GTK_WIDGET(all), ("Use all vailable displays in fullscreen"), 0, 0);
-	gtk_widget_set_halign (GTK_WIDGET(all), GTK_ALIGN_CENTER);
-	gtk_container_add (GTK_CONTAINER (vbox), GTK_WIDGET(all));
+	gtk_tool_item_set_tooltip_text(all,
+				       _("Use all vailable displays in fullscreen"));
+	gtk_widget_set_halign(GTK_WIDGET(all), GTK_ALIGN_CENTER);
+	gtk_container_add(GTK_CONTAINER(vbox), GTK_WIDGET(all));
 	gtk_widget_show_all(vbox);
-	gtk_container_add (GTK_CONTAINER (parent), vbox);
-	gtk_container_set_border_width (GTK_CONTAINER (popover), 6);
+	//gtk_container_add (GTK_CONTAINER (parent), vbox);
+	gtk_container_set_border_width(GTK_CONTAINER(popover), 6);
 
 	return popover;
 }
 
-static void rcw_toolbar_multidisp_icons (RemminaConnectionWindow *cnnwin, GtkWidget *toolbar)
+static void rcw_toolbar_multidisp_icons(RemminaConnectionWindow *cnnwin, GtkWidget *toolbar)
 {
 	TRACE_CALL(__func__);
 #if GTK_CHECK_VERSION(3, 22, 0)
@@ -2111,6 +2111,8 @@ static void rcw_toolbar_multidisp_icons (RemminaConnectionWindow *cnnwin, GtkWid
 	display = gdk_window_get_display(window);
 	monitor = gdk_display_get_monitor_at_window(display, window);
 	n_monitors = gdk_display_get_n_monitors(display);
+	g_debug("The display %s has %d monitors associated",
+		gdk_display_get_name(display), n_monitors);
 	/* Number of activated/enabled monitors
 	 * here we should see in the profile if the user disabled a specific
 	 * monitor
@@ -2118,20 +2120,18 @@ static void rcw_toolbar_multidisp_icons (RemminaConnectionWindow *cnnwin, GtkWid
 	n_enabled = n_monitors;
 	if (n_monitors > 1) {
 		toolitem = gtk_toggle_tool_button_new();
-		g_sprintf(iconname,  "remmina-set-mon-%d-symbolic", n_enabled);
+		g_sprintf(iconname, "remmina-set-mon-%d-symbolic", n_enabled);
 		gtk_tool_button_set_icon_name(GTK_TOOL_BUTTON(toolitem), iconname);
-		rcw_set_tooltip( GTK_WIDGET(toolitem),
-				_("Select fullscreen active displays"),
-				0, 0);
+		gtk_tool_item_set_tooltip_text(toolitem,
+					       _("Select fullscreen active displays"));
 		gtk_toolbar_insert(GTK_TOOLBAR(toolbar), toolitem, -1);
-		popover = rcw_multidisp_popover (GTK_WIDGET(toolitem),
-				n_monitors,
-				GTK_POS_TOP);
-		gtk_popover_set_modal (GTK_POPOVER (popover), FALSE);
-		g_signal_connect (G_OBJECT(toolitem), "toggled",
-				G_CALLBACK (toggle_changed_cb), popover);
+		popover = rcw_multidisp_popover(GTK_WIDGET(toolitem),
+						n_monitors,
+						GTK_POS_TOP);
+		gtk_popover_set_modal(GTK_POPOVER(popover), FALSE);
+		g_signal_connect(G_OBJECT(toolitem), "toggled",
+				 G_CALLBACK(toggle_changed_cb), popover);
 		gtk_widget_show(GTK_WIDGET(toolitem));
-		// n_monitors = 3;
 	}
 #endif
 }
@@ -2181,7 +2181,7 @@ rcw_create_toolbar(RemminaConnectionWindow *cnnwin, gint mode)
 	}
 
 	/* Fullscreen multi-monitor */
-	rcw_toolbar_multidisp_icons (cnnwin, toolbar);
+	rcw_toolbar_multidisp_icons(cnnwin, toolbar);
 
 	/* Fullscreen drop-down options */
 	toolitem = gtk_tool_item_new();
@@ -3318,8 +3318,8 @@ static RemminaConnectionWindow *rcw_create_scrolled(gint width, gint height, gbo
 	 * call unrealize() and will destroy a GtkSocket */
 	gtk_widget_show(grid);
 	gtk_widget_show(GTK_WIDGET(cnnwin));
-	GtkWindowGroup * wingrp = gtk_window_group_new ();
-	gtk_window_group_add_window (wingrp, GTK_WINDOW(cnnwin));
+	GtkWindowGroup *wingrp = gtk_window_group_new();
+	gtk_window_group_add_window(wingrp, GTK_WINDOW(cnnwin));
 	gtk_window_set_transient_for(GTK_WINDOW(cnnwin), NULL);
 
 	if (maximize)
@@ -3525,8 +3525,8 @@ RemminaConnectionWindow *rcw_create_fullscreen(GtkWindow *old, gint view_mode)
 	}
 
 	gtk_widget_show(GTK_WIDGET(cnnwin));
-	GtkWindowGroup * wingrp = gtk_window_group_new ();
-	gtk_window_group_add_window (wingrp, GTK_WINDOW(cnnwin));
+	GtkWindowGroup *wingrp = gtk_window_group_new();
+	gtk_window_group_add_window(wingrp, GTK_WINDOW(cnnwin));
 	gtk_window_set_transient_for(GTK_WINDOW(cnnwin), NULL);
 
 	return cnnwin;

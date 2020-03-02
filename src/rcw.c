@@ -107,6 +107,9 @@ struct _RemminaConnectionWindowPriv {
 	/* Toolitems that need to be handled */
 	GtkToolItem *					toolitem_autofit;
 	GtkToolItem *					toolitem_fullscreen;
+	gint 						toolitem_fullscreen_index;
+	GtkToolItem *					toolitem_multimon;
+	gint 						toolitem_multimon_index;
 	GtkToolItem *					toolitem_switch_page;
 	GtkToolItem *					toolitem_dynres;
 	GtkToolItem *					toolitem_scale;
@@ -2105,7 +2108,7 @@ static void toggle_changed_cb(GtkWidget *toolitem, GtkWidget *popover)
 			       gtk_toggle_tool_button_get_active(GTK_TOGGLE_TOOL_BUTTON(toolitem)));
 }
 
-static GtkWidget *rcw_multidisp_popover(GtkWidget *parent, gint n_monitors, GtkPositionType pos)
+static GtkWidget *rcw_multimon_popover(GtkWidget *parent, gint n_monitors, GtkPositionType pos)
 {
 	GtkWidget *popover, *vbox, *hbox;
 	gint i;
@@ -2136,16 +2139,14 @@ static GtkWidget *rcw_multidisp_popover(GtkWidget *parent, gint n_monitors, GtkP
 	gtk_widget_set_halign(GTK_WIDGET(all), GTK_ALIGN_CENTER);
 	gtk_container_add(GTK_CONTAINER(vbox), GTK_WIDGET(all));
 	gtk_widget_show_all(vbox);
-	//gtk_container_add (GTK_CONTAINER (parent), vbox);
 	gtk_container_set_border_width(GTK_CONTAINER(popover), 6);
 
 	return popover;
 }
 
-static void rcw_toolbar_multidisp_icons(RemminaConnectionWindow *cnnwin, GtkWidget *toolbar)
+static GtkToolItem *rcw_toolbar_multimon_icons(RemminaConnectionWindow *cnnwin, GtkWidget *toolbar)
 {
 	TRACE_CALL(__func__);
-#if GTK_CHECK_VERSION(3, 22, 0)
 	gint n_monitors;
 	gint n_enabled;
 	gchar iconname[40];
@@ -2158,6 +2159,7 @@ static void rcw_toolbar_multidisp_icons(RemminaConnectionWindow *cnnwin, GtkWidg
 	window = gtk_widget_get_window(GTK_WIDGET(cnnwin));
 	display = gdk_window_get_display(window);
 	monitor = gdk_display_get_monitor_at_window(display, window);
+	/* FIXME: This is a 3.22 only eature */
 	n_monitors = gdk_display_get_n_monitors(display);
 	g_debug("The display %s has %d monitors associated",
 		gdk_display_get_name(display), n_monitors);
@@ -2166,26 +2168,33 @@ static void rcw_toolbar_multidisp_icons(RemminaConnectionWindow *cnnwin, GtkWidg
 	 * monitor
 	 */
 	n_enabled = n_monitors;
+	toolitem = gtk_toggle_tool_button_new();
+	g_sprintf(iconname, "remmina-set-mon-%d-symbolic", n_enabled);
+	gtk_tool_button_set_icon_name(GTK_TOOL_BUTTON(toolitem), iconname);
+	gtk_tool_item_set_tooltip_text(toolitem,
+			_("Select fullscreen active displays"));
+	if (cnnwin->priv->toolitem_fullscreen_index >= 0)
+		cnnwin->priv->toolitem_multimon_index = cnnwin->priv->toolitem_fullscreen_index +1;
+	else
+		cnnwin->priv->toolitem_multimon_index = -1;
+
+	gtk_toolbar_insert(GTK_TOOLBAR(toolbar), toolitem, cnnwin->priv->toolitem_multimon_index);
+	gtk_widget_set_sensitive(GTK_WIDGET(toolitem), TRUE);
 	if (n_monitors > 1) {
-		toolitem = gtk_toggle_tool_button_new();
-		g_sprintf(iconname, "remmina-set-mon-%d-symbolic", n_enabled);
-		gtk_tool_button_set_icon_name(GTK_TOOL_BUTTON(toolitem), iconname);
-		gtk_tool_item_set_tooltip_text(toolitem,
-					       _("Select fullscreen active displays"));
-		gtk_toolbar_insert(GTK_TOOLBAR(toolbar), toolitem, -1);
-		popover = rcw_multidisp_popover(GTK_WIDGET(toolitem),
+		popover = rcw_multimon_popover(GTK_WIDGET(toolitem),
 						n_monitors,
 						GTK_POS_TOP);
 		gtk_popover_set_modal(GTK_POPOVER(popover), FALSE);
 		g_signal_connect(G_OBJECT(toolitem), "toggled",
 				 G_CALLBACK(toggle_changed_cb), popover);
 		gtk_widget_show(GTK_WIDGET(toolitem));
+	} else {
+		gtk_widget_set_sensitive(GTK_WIDGET(toolitem), FALSE);
 	}
-#endif
+	return toolitem;
 }
 
-static GtkWidget *
-rcw_create_toolbar(RemminaConnectionWindow *cnnwin, gint mode)
+static GtkWidget *rcw_create_toolbar(RemminaConnectionWindow *cnnwin, gint mode)
 {
 	TRACE_CALL(__func__);
 	RemminaConnectionWindowPriv *priv = cnnwin->priv;
@@ -2224,6 +2233,9 @@ rcw_create_toolbar(RemminaConnectionWindow *cnnwin, gint mode)
 	gtk_toolbar_insert(GTK_TOOLBAR(toolbar), toolitem, -1);
 	gtk_widget_show(GTK_WIDGET(toolitem));
 	priv->toolitem_fullscreen = toolitem;
+	priv->toolitem_fullscreen_index = gtk_toolbar_get_item_index (
+			GTK_TOOLBAR(toolbar),
+			priv->toolitem_fullscreen);
 	if (kioskmode) {
 		gtk_toggle_tool_button_set_active(GTK_TOGGLE_TOOL_BUTTON(toolitem), FALSE);
 	} else {
@@ -2232,7 +2244,7 @@ rcw_create_toolbar(RemminaConnectionWindow *cnnwin, gint mode)
 	}
 
 	/* Fullscreen multi-monitor */
-	rcw_toolbar_multidisp_icons(cnnwin, toolbar);
+	priv->toolitem_multimon = rcw_toolbar_multimon_icons(cnnwin, toolbar);
 
 	/* Fullscreen drop-down options */
 	toolitem = gtk_tool_item_new();
@@ -2490,7 +2502,6 @@ static void rco_update_toolbar(RemminaConnectionObject *cnnobj)
 	bval = remmina_protocol_widget_query_feature_by_type(REMMINA_PROTOCOL_WIDGET(cnnobj->proto),
 							     REMMINA_PROTOCOL_FEATURE_TYPE_TOOL);
 	gtk_widget_set_sensitive(GTK_WIDGET(toolitem), bval && cnnobj->connected);
-
 	gtk_widget_set_sensitive(GTK_WIDGET(priv->toolitem_screenshot), cnnobj->connected);
 
 	gtk_window_set_title(GTK_WINDOW(cnnobj->cnnwin), remmina_file_get_string(cnnobj->remmina_file, "name"));
@@ -3122,7 +3133,6 @@ static GtkWidget *rcw_append_new_page(RemminaConnectionWindow *cnnwin, RemminaCo
 
 	return page;
 }
-
 
 static void rcw_update_notebook(RemminaConnectionWindow *cnnwin)
 {
@@ -3871,6 +3881,30 @@ void rco_on_disconnect(RemminaProtocolWidget *gp, gpointer data)
 	}
 }
 
+void rco_on_monitors_added(GdkDisplay *display, GdkMonitor *monitor, RemminaConnectionObject *cnnobj)
+{
+	TRACE_CALL(__func__);
+	g_debug ("Monitor(s) added");
+	if (cnnobj->cnnwin->priv->toolitem_multimon)
+		gtk_container_remove (GTK_CONTAINER(cnnobj->cnnwin->priv->toolbar),
+				GTK_WIDGET(cnnobj->cnnwin->priv->toolitem_multimon));
+	cnnobj->cnnwin->priv->toolitem_multimon = rcw_toolbar_multimon_icons (cnnobj->cnnwin, cnnobj->cnnwin->priv->toolbar);
+
+	//rco_update_toolbar(cnnobj);
+}
+
+void rco_on_monitors_removed(GdkDisplay *display, GdkMonitor *monitor, RemminaConnectionObject *cnnobj)
+{
+	TRACE_CALL(__func__);
+	g_debug ("Monitor(s) removed");
+	if (cnnobj->cnnwin->priv->toolitem_multimon)
+		gtk_container_remove (GTK_CONTAINER(cnnobj->cnnwin->priv->toolbar),
+				GTK_WIDGET(cnnobj->cnnwin->priv->toolitem_multimon));
+	cnnobj->cnnwin->priv->toolitem_multimon = rcw_toolbar_multimon_icons (cnnobj->cnnwin, cnnobj->cnnwin->priv->toolbar);
+
+	//rco_update_toolbar(cnnobj);
+}
+
 void rco_on_desktop_resize(RemminaProtocolWidget *gp, gpointer data)
 {
 	TRACE_CALL(__func__);
@@ -4054,6 +4088,11 @@ GtkWidget *rcw_open_from_file_full(RemminaFile *remminafile, GCallback disconnec
 	g_signal_connect(G_OBJECT(cnnobj->proto), "desktop-resize", G_CALLBACK(rco_on_desktop_resize), NULL);
 	g_signal_connect(G_OBJECT(cnnobj->proto), "update-align", G_CALLBACK(rco_on_update_align), NULL);
 	g_signal_connect(G_OBJECT(cnnobj->proto), "unlock-dynres", G_CALLBACK(rco_on_unlock_dynres), NULL);
+
+	GdkDisplay *display = gdk_display_get_default();
+	g_signal_connect(display, "monitor-added", G_CALLBACK(rco_on_monitors_added), cnnobj);
+	g_signal_connect(display, "monitor-removed", G_CALLBACK(rco_on_monitors_removed), cnnobj);
+
 
 	if (!remmina_pref.save_view_mode)
 		remmina_file_set_int(cnnobj->remmina_file, "viewmode", remmina_pref.default_mode);

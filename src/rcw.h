@@ -81,6 +81,7 @@ GtkWidget *rcw_open_from_file_full(RemminaFile *remminafile, GCallback disconnec
 void rco_destroy_message_panel(RemminaConnectionObject *cnnobj, RemminaMessagePanel *mp);
 void rco_show_message_panel(RemminaConnectionObject *cnnobj, RemminaMessagePanel *mp);
 void rco_get_monitor_geometry(RemminaConnectionObject *cnnobj, GdkRectangle *sz);
+void rcw_save_monitors (RemminaConnectionObject *cnnobj, gboolean *force);
 
 #define MESSAGE_PANEL_SPINNER 0x00000001
 #define MESSAGE_PANEL_OKBUTTON 0x00000002

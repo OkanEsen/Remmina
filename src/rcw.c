@@ -108,9 +108,7 @@ struct _RemminaConnectionWindowPriv {
 	/* Toolitems that need to be handled */
 	GtkToolItem *					toolitem_autofit;
 	GtkToolItem *					toolitem_fullscreen;
-	gint 						toolitem_fullscreen_index;
 	GtkToolItem *					toolitem_multimon;
-	gint 						toolitem_multimon_index;
 	GtkToolItem *					toolitem_switch_page;
 	GtkToolItem *					toolitem_dynres;
 	GtkToolItem *					toolitem_scale;
@@ -119,6 +117,11 @@ struct _RemminaConnectionWindowPriv {
 	GtkToolItem *					toolitem_tools;
 	GtkToolItem *					toolitem_duplicate;
 	GtkToolItem *					toolitem_screenshot;
+	GtkToolItem *					toolitem_mon1;
+	GtkToolItem *					toolitem_mon2;
+	GtkToolItem *					toolitem_mon3;
+	GtkToolItem *					toolitem_mon4;
+	GtkToolItem *					toolitem_monall;
 	GtkWidget *					fullscreen_option_button;
 	GtkWidget *					fullscreen_scaler_button;
 	GtkWidget *					scaler_option_button;
@@ -153,6 +156,8 @@ struct _RemminaConnectionWindowPriv {
 	GdkMonitor *					monitor;
 	const gchar *					model;
 	const gchar *					monitors;
+	gint 						toolitem_fullscreen_index;
+	gint 						toolitem_multimon_index;
 
 	RemminaConnectionWindowOnDeleteConfirmMode	on_delete_confirm_mode;
 };
@@ -2067,7 +2072,7 @@ static void toggle_changed_cb(GtkWidget *toolitem, GtkWidget *popover)
 			       gtk_toggle_tool_button_get_active(GTK_TOGGLE_TOOL_BUTTON(toolitem)));
 }
 
-void rcw_multimon_change (GtkToggleButton *source, gpointer user_data)
+void rcw_multimon_change (GtkToggleToolButton *source, gpointer user_data)
 {
 	TRACE_CALL(__func__);
 
@@ -2084,7 +2089,26 @@ void rcw_multimon_change (GtkToggleButton *source, gpointer user_data)
 
 	const gchar *monitors = remmina_file_get_string(cnnobj->remmina_file, "monitors");
 
-	gboolean is_active = gtk_toggle_button_get_active (source);
+	gboolean is_active = gtk_toggle_tool_button_get_active (source);
+	if (source == GTK_TOGGLE_TOOL_BUTTON(cnnwin->priv->toolitem_monall)) {
+		if (cnnwin->priv->toolitem_mon1)
+			gtk_toggle_tool_button_set_active (GTK_TOGGLE_TOOL_BUTTON(cnnwin->priv->toolitem_mon1), FALSE);
+		if (cnnwin->priv->toolitem_mon2)
+			gtk_toggle_tool_button_set_active (GTK_TOGGLE_TOOL_BUTTON(cnnwin->priv->toolitem_mon2), FALSE);
+		if (cnnwin->priv->toolitem_mon3)
+			gtk_toggle_tool_button_set_active (GTK_TOGGLE_TOOL_BUTTON(cnnwin->priv->toolitem_mon3), FALSE);
+		if (cnnwin->priv->toolitem_mon4)
+			gtk_toggle_tool_button_set_active (GTK_TOGGLE_TOOL_BUTTON(cnnwin->priv->toolitem_mon4), FALSE);
+		cnnwin->priv->monitors = "";
+		remmina_file_set_string (cnnobj->remmina_file,
+				"monitors",
+				g_strdup(cnnwin->priv->monitors));
+		g_debug ("Saving monitors setup to %s", cnnobj->remmina_file->filename);
+		remmina_file_save(cnnobj->remmina_file);
+		return;
+	} else {
+		gtk_toggle_tool_button_set_active (GTK_TOGGLE_TOOL_BUTTON(cnnwin->priv->toolitem_monall), FALSE);
+	}
 
 	if (!cnnwin->priv->monitors || cnnwin->priv->monitors == NULL) {
 		g_debug ("Monitor stack is empty, adding %s", cnnwin->priv->model);
@@ -2156,8 +2180,6 @@ static GtkWidget *rcw_multimon_popover(GtkWidget *parent, gint n_monitors, GtkPo
 	gint i;
 	gchar iconname[40];
 	GtkToolItem *toolitem;
-	GdkMonitor *monitor;
-	const gchar *model;
 
 	GdkDisplay *display = gdk_display_get_default();
 
@@ -2170,23 +2192,50 @@ static GtkWidget *rcw_multimon_popover(GtkWidget *parent, gint n_monitors, GtkPo
 	gtk_widget_set_halign(hbox, GTK_ALIGN_CENTER);
 	gtk_container_add(GTK_CONTAINER(vbox), hbox);
 	for (i = 1; i <= n_monitors; ++i) {
-		cnnwin->priv->monitor = gdk_display_get_monitor (display, i);
-		cnnwin->priv->model = gdk_monitor_get_model(monitor);
-		toolitem = gtk_toggle_tool_button_new();
+		if (i < n_monitors) {
+			cnnwin->priv->monitor = gdk_display_get_monitor (display, i);
+			cnnwin->priv->model = gdk_monitor_get_model(cnnwin->priv->monitor);
+		}
+		switch(i) {
+
+			case 1 :
+				cnnwin->priv->toolitem_mon1 = gtk_toggle_tool_button_new();
+				toolitem = cnnwin->priv->toolitem_mon1;
+				break; /* optional */
+			case 2 :
+				cnnwin->priv->toolitem_mon1 = gtk_toggle_tool_button_new();
+				toolitem = cnnwin->priv->toolitem_mon1;
+				break; /* optional */
+			case 3 :
+				cnnwin->priv->toolitem_mon1 = gtk_toggle_tool_button_new();
+				toolitem = cnnwin->priv->toolitem_mon1;
+				break; /* optional */
+			case 4 :
+				cnnwin->priv->toolitem_mon1 = gtk_toggle_tool_button_new();
+				toolitem = cnnwin->priv->toolitem_mon1;
+				break; /* optional */
+				/* you can have any number of case statements */
+			default : /* Optional */
+				g_print("Only up to 4 montors are supported");
+				return popover;
+		}
+		//toolitem = gtk_toggle_tool_button_new();
 		g_debug("Adding monitor icon n° %d/%d", i, n_monitors);
 		g_sprintf(iconname, "remmina-set-mon-%d-symbolic", i);
 		gtk_tool_button_set_icon_name(GTK_TOOL_BUTTON(toolitem), iconname);
 		gtk_tool_item_set_tooltip_text(toolitem,
 					       g_strdup_printf(_("Use screen %d during fullscreen"), i));
 		gtk_container_add(GTK_CONTAINER(hbox), GTK_WIDGET(toolitem));
-		g_signal_connect(G_OBJECT(toolitem), "clicked", G_CALLBACK(rcw_multimon_change), cnnwin);
+		g_signal_connect(G_OBJECT(toolitem), "toggled", G_CALLBACK(rcw_multimon_change), cnnwin);
 	}
-	GtkToolItem *all = gtk_toggle_tool_button_new();
-	gtk_tool_button_set_icon_name(GTK_TOOL_BUTTON(all), "remmina-set-mon-all-symbolic");
-	gtk_tool_item_set_tooltip_text(all,
+	cnnwin->priv->toolitem_monall = gtk_toggle_tool_button_new();
+	toolitem = cnnwin->priv->toolitem_monall;
+	gtk_tool_button_set_icon_name(GTK_TOOL_BUTTON(toolitem), "remmina-set-mon-all-symbolic");
+	gtk_tool_item_set_tooltip_text(toolitem,
 				       _("Use all vailable displays in fullscreen"));
-	gtk_widget_set_halign(GTK_WIDGET(all), GTK_ALIGN_CENTER);
-	gtk_container_add(GTK_CONTAINER(vbox), GTK_WIDGET(all));
+	gtk_widget_set_halign(GTK_WIDGET(toolitem), GTK_ALIGN_CENTER);
+	gtk_container_add(GTK_CONTAINER(vbox), GTK_WIDGET(toolitem));
+	g_signal_connect(G_OBJECT(toolitem), "toggled", G_CALLBACK(rcw_multimon_change), cnnwin);
 	gtk_widget_show_all(vbox);
 	gtk_container_set_border_width(GTK_CONTAINER(popover), 6);
 
@@ -4012,6 +4061,8 @@ void rco_on_monitors_added( GdkDisplay *display, GdkMonitor *monitor, RemminaCon
 	const gchar *model = gdk_monitor_get_model(monitor);
 	if (!model && model == NULL)
 		model = "unknown";
+	cnnobj->cnnwin->priv->monitor = monitor;
+	cnnobj->cnnwin->priv->model = model;
 	g_debug ("Monitor %s added", model);
 
 	if (!cnnobj->remmina_file || cnnobj->remmina_file == NULL) {
@@ -4062,6 +4113,8 @@ void rco_on_monitors_removed( GdkDisplay *display, GdkMonitor *monitor, RemminaC
 	const gchar *model = gdk_monitor_get_model(monitor);
 	if (!model && model == NULL)
 		model = "unknown";
+	cnnobj->cnnwin->priv->monitor = monitor;
+	cnnobj->cnnwin->priv->model = model;
 	g_debug ("Monitor %s removed", model);
 
 	if (!cnnobj->remmina_file || cnnobj->remmina_file == NULL) {

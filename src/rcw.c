@@ -152,8 +152,8 @@ struct _RemminaConnectionWindowPriv {
 	gboolean					hostkey_used;
 
 	GdkMonitor *					monitor;
-	const gchar *					model;
-	const gchar *					monitors;
+	gchar *						model;
+	gchar *						monitors;
 	gint 						toolitem_fullscreen_index;
 	gint 						toolitem_multimon_index;
 
@@ -2093,7 +2093,9 @@ void rcw_multimon_change (GtkToggleToolButton *source, gpointer user_data)
 		return;
 	}
 
-	const gchar *monitors = remmina_file_get_string(cnnobj->remmina_file, "monitors");
+	gchar *monitors = g_strdup(remmina_file_get_string(cnnobj->remmina_file, "monitors"));
+
+	//const gchar *monitors = (t != NULL) ? t : "\0";
 
 	gboolean is_active = gtk_toggle_tool_button_get_active (source);
 	if (source == GTK_TOGGLE_TOOL_BUTTON(cnnwin->priv->toolitem_monall)) {
@@ -2105,10 +2107,7 @@ void rcw_multimon_change (GtkToggleToolButton *source, gpointer user_data)
 			gtk_toggle_tool_button_set_active (GTK_TOGGLE_TOOL_BUTTON(cnnwin->priv->toolitem_mon3), FALSE);
 		if (cnnwin->priv->toolitem_mon4)
 			gtk_toggle_tool_button_set_active (GTK_TOGGLE_TOOL_BUTTON(cnnwin->priv->toolitem_mon4), FALSE);
-		cnnwin->priv->monitors = "";
-		remmina_file_set_string (cnnobj->remmina_file,
-				"monitors",
-				g_strdup(cnnwin->priv->monitors));
+		remmina_file_set_string (cnnobj->remmina_file, "monitors", "");
 		g_debug ("Saving monitors setup to %s", cnnobj->remmina_file->filename);
 		remmina_file_save(cnnobj->remmina_file);
 		return;
@@ -2154,11 +2153,12 @@ void rcw_multimon_change (GtkToggleToolButton *source, gpointer user_data)
 			g_debug ("Saving monitors setup to %s", cnnobj->remmina_file->filename);
 			remmina_file_save(cnnobj->remmina_file);
 		} else {
+			g_debug("monitors: %s", monitors);
 			if (g_strcmp0(monitors, cnnwin->priv->monitors) == 0 ){
 				g_debug("Monitor stack and profile has the same monitors");
 				g_debug("Removing %s from the monitor stack", cnnwin->priv->model);
 				const gchar *new = remmina_utils_string_remove (g_strdup(monitors), cnnwin->priv->model);
-				strcpy(g_strdup(new), cnnwin->priv->monitors);
+				strcpy(cnnwin->priv->monitors, new);
 				remmina_file_set_string (cnnobj->remmina_file,
 						"monitors",
 						g_strdup(cnnwin->priv->monitors));
@@ -2200,7 +2200,7 @@ static GtkWidget *rcw_multimon_popover(GtkWidget *parent, gint n_monitors, GtkPo
 	for (i = 1; i <= n_monitors; ++i) {
 		if (i < n_monitors) {
 			cnnwin->priv->monitor = gdk_display_get_monitor (display, i);
-			cnnwin->priv->model = gdk_monitor_get_model(cnnwin->priv->monitor);
+			cnnwin->priv->model = g_strdup(gdk_monitor_get_model(cnnwin->priv->monitor));
 		}
 		switch(i) {
 
@@ -4079,7 +4079,7 @@ void rco_on_monitors_added( GdkDisplay *display, GdkMonitor *monitor, RemminaCon
 	if (!model && model == NULL)
 		model = "unknown";
 	cnnobj->cnnwin->priv->monitor = monitor;
-	cnnobj->cnnwin->priv->model = model;
+	cnnobj->cnnwin->priv->model = g_strdup(model);
 	g_debug ("Monitor %s added", model);
 
 	if (!cnnobj->remmina_file || cnnobj->remmina_file == NULL) {
@@ -4131,7 +4131,7 @@ void rco_on_monitors_removed( GdkDisplay *display, GdkMonitor *monitor, RemminaC
 	if (!model && model == NULL)
 		model = "unknown";
 	cnnobj->cnnwin->priv->monitor = monitor;
-	cnnobj->cnnwin->priv->model = model;
+	cnnobj->cnnwin->priv->model = g_strdup(model);
 	g_debug ("Monitor %s removed", model);
 
 	if (!cnnobj->remmina_file || cnnobj->remmina_file == NULL) {

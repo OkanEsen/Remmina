@@ -2137,18 +2137,28 @@ void rcw_multimon_change (GtkToggleToolButton *source, gpointer user_data)
 
 	gchar *monitors = g_strdup(remmina_file_get_string(cnnobj->remmina_file, "monitors"));
 
-	//const gchar *monitors = (t != NULL) ? t : "\0";
-
 	gboolean is_active = gtk_toggle_tool_button_get_active (source);
 	if (source == GTK_TOGGLE_TOOL_BUTTON(cnnwin->priv->toolitem_monall)) {
 		if (cnnwin->priv->toolitem_mon1)
+		if (gtk_toggle_tool_button_get_active (GTK_TOGGLE_TOOL_BUTTON(cnnwin->priv->toolitem_mon1))) {
 			gtk_toggle_tool_button_set_active (GTK_TOGGLE_TOOL_BUTTON(cnnwin->priv->toolitem_mon1), FALSE);
+			g_debug ("Untoggling screen icon 1");
+		}
 		if (cnnwin->priv->toolitem_mon2)
+		if (gtk_toggle_tool_button_get_active (GTK_TOGGLE_TOOL_BUTTON(cnnwin->priv->toolitem_mon2))) {
 			gtk_toggle_tool_button_set_active (GTK_TOGGLE_TOOL_BUTTON(cnnwin->priv->toolitem_mon2), FALSE);
+			g_debug ("Untoggling screen icon 2");
+		}
 		if (cnnwin->priv->toolitem_mon3)
+		if (gtk_toggle_tool_button_get_active (GTK_TOGGLE_TOOL_BUTTON(cnnwin->priv->toolitem_mon3))) {
 			gtk_toggle_tool_button_set_active (GTK_TOGGLE_TOOL_BUTTON(cnnwin->priv->toolitem_mon3), FALSE);
+			g_debug ("Untoggling screen icon 3");
+		}
 		if (cnnwin->priv->toolitem_mon4)
+		if (gtk_toggle_tool_button_get_active (GTK_TOGGLE_TOOL_BUTTON(cnnwin->priv->toolitem_mon4))) {
 			gtk_toggle_tool_button_set_active (GTK_TOGGLE_TOOL_BUTTON(cnnwin->priv->toolitem_mon4), FALSE);
+			g_debug ("Untoggling screen icon 4");
+		}
 		remmina_file_set_string (cnnobj->remmina_file, "monitors", "");
 		g_debug ("Saving monitors setup to %s", cnnobj->remmina_file->filename);
 		remmina_file_save(cnnobj->remmina_file);
@@ -2251,23 +2261,22 @@ static GtkWidget *rcw_multimon_popover(GtkWidget *parent, gint n_monitors, GtkPo
 				toolitem = cnnwin->priv->toolitem_mon1;
 				break; /* optional */
 			case 2 :
-				cnnwin->priv->toolitem_mon1 = gtk_toggle_tool_button_new();
-				toolitem = cnnwin->priv->toolitem_mon1;
+				cnnwin->priv->toolitem_mon2 = gtk_toggle_tool_button_new();
+				toolitem = cnnwin->priv->toolitem_mon2;
 				break; /* optional */
 			case 3 :
-				cnnwin->priv->toolitem_mon1 = gtk_toggle_tool_button_new();
-				toolitem = cnnwin->priv->toolitem_mon1;
+				cnnwin->priv->toolitem_mon3 = gtk_toggle_tool_button_new();
+				toolitem = cnnwin->priv->toolitem_mon3;
 				break; /* optional */
 			case 4 :
-				cnnwin->priv->toolitem_mon1 = gtk_toggle_tool_button_new();
-				toolitem = cnnwin->priv->toolitem_mon1;
+				cnnwin->priv->toolitem_mon4 = gtk_toggle_tool_button_new();
+				toolitem = cnnwin->priv->toolitem_mon4;
 				break; /* optional */
 				/* you can have any number of case statements */
 			default : /* Optional */
 				g_print("Only up to 4 montors are supported");
 				return popover;
 		}
-		//toolitem = gtk_toggle_tool_button_new();
 		g_debug("Adding monitor icon n° %d/%d", i, n_monitors);
 		g_sprintf(iconname, "remmina-set-mon-%d-symbolic", i);
 		gtk_tool_button_set_icon_name(GTK_TOOL_BUTTON(toolitem), iconname);
@@ -2280,7 +2289,7 @@ static GtkWidget *rcw_multimon_popover(GtkWidget *parent, gint n_monitors, GtkPo
 	toolitem = cnnwin->priv->toolitem_monall;
 	gtk_tool_button_set_icon_name(GTK_TOOL_BUTTON(toolitem), "remmina-set-mon-all-symbolic");
 	gtk_tool_item_set_tooltip_text(toolitem,
-				       _("Use all vailable displays in fullscreen"));
+				       _("Use all available screens in fullscreen"));
 	gtk_widget_set_halign(GTK_WIDGET(toolitem), GTK_ALIGN_CENTER);
 	gtk_container_add(GTK_CONTAINER(vbox), GTK_WIDGET(toolitem));
 	g_signal_connect(G_OBJECT(toolitem), "toggled", G_CALLBACK(rcw_multimon_change), cnnwin);

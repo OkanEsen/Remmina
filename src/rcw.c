@@ -2209,7 +2209,9 @@ void rcw_multimon_change (GtkToggleToolButton *source, gpointer user_data)
 			if (g_strcmp0(monitors, cnnwin->priv->monitors) == 0 ){
 				g_debug("Monitor stack and profile has the same monitors");
 				g_debug("Removing %s from the monitor stack", cnnwin->priv->model);
-				const gchar *new = remmina_utils_string_remove (g_strdup(monitors), cnnwin->priv->model);
+				const gchar *new = remmina_utils_string_remove (g_strdup(monitors),
+						g_strconcat (g_strdup(cnnwin->priv->model), ";", NULL));
+				g_debug ("New monitor string is: %s", new);
 				strcpy(cnnwin->priv->monitors, new);
 				remmina_file_set_string (cnnobj->remmina_file,
 						"monitors",

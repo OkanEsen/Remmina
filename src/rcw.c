@@ -4169,7 +4169,8 @@ void rco_on_monitors_removed( GdkDisplay *display, GdkMonitor *monitor, RemminaC
 			g_debug ("Removing %s from the monitor list", model);
 			cnnobj->cnnwin->priv->monitors = remmina_utils_string_remove (
 					g_strdup(cnnobj->cnnwin->priv->monitors),
-					model);
+					g_strconcat (model, ';', NULL));
+			/* We remove double ; if any */
 			cnnobj->cnnwin->priv->monitors = remmina_utils_string_remove (
 					g_strdup(cnnobj->cnnwin->priv->monitors),
 					";;");
@@ -4182,7 +4183,7 @@ void rco_on_monitors_removed( GdkDisplay *display, GdkMonitor *monitor, RemminaC
 				g_debug ("Removing %s from the monitor stack", model);
 				cnnobj->cnnwin->priv->monitors = remmina_utils_string_remove (
 						g_strdup(cnnobj->cnnwin->priv->monitors),
-						model);
+						g_strconcat (model, ';', NULL));
 				cnnobj->cnnwin->priv->monitors = remmina_utils_string_remove (
 						g_strdup(cnnobj->cnnwin->priv->monitors),
 						";;");

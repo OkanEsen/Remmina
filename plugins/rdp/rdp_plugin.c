@@ -1982,9 +1982,9 @@ static gpointer security_list[] =
 
 static gpointer gwtransp_list[] =
 {
-	"http", "http",
-	"rpc",	"rpc",
-	"auto", "auto",
+	"http", "HTTP",
+	"rpc",	"RPC",
+	"auto", "Auto",
 	NULL
 };
 

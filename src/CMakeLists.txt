@@ -135,9 +135,14 @@ if(WITH_MANPAGES)
 	install(FILES remmina.1 DESTINATION ${CMAKE_INSTALL_FULL_MANDIR}/man1)
 endif()
 
-find_package(X11)
-include_directories(${X11_INCLUDE_DIR})
-target_link_libraries(remmina ${X11_LIBRARIES})
+option(WITH_X11 "Building with X11 libs" OON)
+if(WITH_X11)
+	find_package(X11)
+	include_directories(${X11_INCLUDE_DIR})
+	target_link_libraries(remmina ${X11_LIBRARIES})
+else()
+	message(STATUS "Disabling X11 libraries.")
+endif()
 
 target_link_libraries(remmina ${CMAKE_THREAD_LIBS_INIT})
 

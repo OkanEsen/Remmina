@@ -49,6 +49,10 @@
 #ifdef HAVE_SYS_UN_H
 #include <sys/un.h>
 #endif
+
+#ifdef GDK_WINDOWING_WAYLAND
+	#include <gdk/gdkwayland.h>
+#endif
 #ifdef GDK_WINDOWING_X11
 #include <gdk/gdkx.h>
 #include <X11/Xlib.h>

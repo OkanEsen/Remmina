@@ -35,7 +35,13 @@
 
 set(CMAKE_THREAD_PREFER_PTHREAD TRUE)
 find_package(Threads REQUIRED)
-find_package(X11)
+option(WITH_X11 "Building with X11 libs" ON)
+if(WITH_X11)
+	find_package(X11)
+else()
+	message(STATUS "Disabling X11 libraries for the RDP plugin.")
+	set(X11_INCLUDE_DIR "" )
+endif()
 
 find_suggested_package(Cups)
 

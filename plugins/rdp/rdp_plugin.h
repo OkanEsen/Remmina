@@ -47,7 +47,12 @@
 #include <freerdp/gdi/region.h>
 #include <freerdp/client/cliprdr.h>
 #include <freerdp/client/disp.h>
-#include <gdk/gdkx.h>
+#ifdef GDK_WINDOWING_WAYLAND
+	#include <gdk/gdkwayland.h>
+#endif
+#ifdef GDK_WINDOWING_X11
+	#include <gdk/gdkx.h>
+#endif
 
 #include <winpr/clipboard.h>
 

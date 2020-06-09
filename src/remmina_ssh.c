@@ -43,7 +43,12 @@
 
 #define LIBSSH_STATIC 1
 #include <libssh/libssh.h>
-#include <gdk/gdkx.h>
+#ifdef GDK_WINDOWING_WAYLAND
+	#include <gdk/gdkwayland.h>
+#endif
+#ifdef GDK_WINDOWING_X11
+	#include <gdk/gdkx.h>
+#endif
 #include <gtk/gtk.h>
 #include <glib/gi18n.h>
 #include <stdlib.h>

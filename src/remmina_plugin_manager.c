@@ -43,7 +43,12 @@
 #include <gio/gio.h>
 #include <string.h>
 
-#include <gdk/gdkx.h>
+#ifdef GDK_WINDOWING_WAYLAND
+	#include <gdk/gdkwayland.h>
+#endif
+#ifdef GDK_WINDOWING_X11
+	#include <gdk/gdkx.h>
+#endif
 
 #include "remmina_public.h"
 #include "remmina_file_manager.h"
